@@ -41,7 +41,7 @@ int main(){
 		int x = matrix[i][1];
 		int y = matrix[i][2];
 		int z= matrix[i][3];
-		matrix[i][columns] = (w && not(x)) || (not(y&&z)&&x) || (not(w)&&z&&y);
+		matrix[i][columns] = (w && y && not(z)) || (not(w)&&not(x)&&y) || (x&&not(y)&&z)|| (not(w)&&y) || (x&&not(z));
 		
 		if (matrix[i][columns]==1){ //we save the amount of ones, to help the Disjunctive form
 			onesCounter++;
@@ -51,7 +51,7 @@ int main(){
 	
 	
 	//we print the matrix
-	printf("Expression: (w && (-x)) || ( (-(y&&z)) && x) || ( (-w) && z && y )\n\n");
+	printf("Expression: (w && y && not(z)) || (not(w)&&not(x)&&y) || (x&&not(y)&&z)|| (not(w)&&y) || (x&&not(z))\n\n"); //wyz’+w’x’y+xy’z+w’y+xz’
 	
 	printf("w x y z Result\n");
 		for(int i=0; i<rows; i++){
