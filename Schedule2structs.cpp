@@ -100,10 +100,14 @@ void llenarNodos(Asignatura *head)
 {
     Asignatura *currentNode;
     currentNode = head;
-    currentNode->nombreAsignatura = (char *)malloc(sizeof(char));
+    char palabra[50];
+    
     printf("Nombre: ");
     fflush(stdin);
-    gets(currentNode->nombreAsignatura);
+    gets(palabra);
+    currentNode->nombreAsignatura = (char *)malloc(sizeof(char)*(strlen(palabra)+1));
+    strcpy(currentNode->nombreAsignatura,palabra);
+
     printf("Dia semana: ");
     scanf("%d", &currentNode->diaSemana);
 
