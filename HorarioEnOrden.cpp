@@ -1,3 +1,4 @@
+/* Program to control schedule */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,45 +21,49 @@ struct Asignatura
 typedef struct Asignatura Asignatura;
 typedef struct Fecha Fecha;
 
-void inputController(Asignatura *head);
-void leer(Asignatura *head);
-Asignatura *crearNodo();
-void imprimir(Asignatura *head);
-void agregarAlFinal(Asignatura *first, Asignatura *second);
-void sortedInsert(Asignatura* head_ref, Asignatura* new_node);
+void addToLast(Asignatura **first, Asignatura *second);
+int condicionOrdenamiento(Asignatura** head_ref, Asignatura* new_node);
+void sortedInsert(Asignatura** head_ref, Asignatura* new_node);
+Asignatura* newAsignatura();
+void printList(Asignatura* head);
+void read(Asignatura *head);
+Asignatura* inputController(Asignatura *head);
 
-Asignatura *crearNodo()
+/* Function that addes new node at the end*/
+void addToLast(Asignatura **first, Asignatura *second)
 {
-    Asignatura *nuevo = (Asignatura *)malloc(sizeof(Asignatura));
-    nuevo->next = NULL;
-    return nuevo;
-}
-
-void agregarAlFinal(Asignatura *first, Asignatura *second)
-{
-    Asignatura *temp = first;
-
+    Asignatura *temp = *first;
+    if (*first == NULL)
+    {
+       *first = second;
+    } else{
     while (temp->next != NULL)
     {
         temp = temp->next;
     }
     temp->next = second;
+    }
 }
 
-void sortedInsert(Asignatura* head_ref, Asignatura* new_node)
+/* Function to define behavior of sortedInsert()*/
+int condicionOrdenamiento(Asignatura** head_ref, Asignatura* new_node)
+{
+    return *head_ref == NULL || (*head_ref)->diaSemana >= new_node->diaSemana;
+}
+
+/* Function to insert in ascending order*/
+void sortedInsert(Asignatura** head_ref, Asignatura* new_node)
 {
     Asignatura* current;
     /* Special case for the head end */
-    if (head_ref == NULL || (head_ref)->diaSemana >= new_node->diaSemana) {
-        new_node->next = head_ref;
-        head_ref = new_node;
-        printf("\nif");
+    if (condicionOrdenamiento(head_ref, new_node) == 1) {
+        new_node->next = *head_ref;
+        *head_ref = new_node;
     }
     else {
         /* Locate the node before
 the point of insertion */
-        printf("\nelse");
-        current = head_ref;
+        current = *head_ref;
         while (current->next != NULL && current->next->diaSemana < new_node->diaSemana) {
             current = current->next;
         }
@@ -67,59 +72,30 @@ the point of insertion */
     }
 }
 
-void inputController(Asignatura *head)
+ 
+/*Function to create a new node */
+Asignatura* newAsignatura()
 {
-    int numMaterias = 1;
-
-    if (head == NULL)
-    {
-        printf("Memoria insuficiente");
-    }
-    else
-    {
-
-        leer(head);
-
-        puts("\nDesea agregar otro nodo? Si[1], No[0]: ");
-        scanf("%d", &numMaterias);
-
-        while (numMaterias == 1)
-        {
-            Asignatura *newNode = crearNodo();
-            leer(newNode);
-            sortedInsert(head, newNode);
-
-            puts("\nDesea agregar otro nodo? Si[1], No[0]: ");
-            scanf("%d", &numMaterias);
-        }
+    Asignatura* new_node = (Asignatura*)malloc(sizeof(Asignatura));
+ 
+    return new_node;
+}
+ 
+/* Function to print linked list */
+void printList(Asignatura* head)
+{
+    Asignatura* temp = head;
+    while (temp != NULL) {
+        printf("\nNombre: %s", temp->nombreAsignatura);
+        printf("\nDia de la semana: %d", temp->diaSemana);
+        printf("\nHora entrada-> %d:%d", temp->horarioEntrada->hora, temp->horarioEntrada->minuto);
+        printf("\nHora salida-> %d:%d\n", temp->horarioSalida->hora, temp->horarioSalida->minuto);
+        temp = temp->next;
     }
 }
 
-void imprimir(Asignatura *head)
-{
-    Asignatura *pointer;
-    pointer = head;
-
-    printf("\nNombre: %s", head->nombreAsignatura);
-    printf("\nDia de la semana: %d", head->diaSemana);
-    printf("\nHora entrada: %d", head->horarioEntrada->hora);
-    printf("\nMinuto entrada: %d", head->horarioEntrada->minuto);
-    printf("\nHora salida: %d", head->horarioSalida->hora);
-    printf("\nMinuto salida: %d\n", head->horarioSalida->minuto);
-
-    while (pointer->next != NULL)
-    {
-        pointer = pointer->next;
-        printf("\nNombre: %s", pointer->nombreAsignatura);
-        printf("\nDia de la semana: %d", pointer->diaSemana);
-        printf("\nHora entrada: %d", pointer->horarioEntrada->hora);
-        printf("\nMinuto entrada: %d", pointer->horarioEntrada->minuto);
-        printf("\nHora salida: %d", pointer->horarioSalida->hora);
-        printf("\nMinuto salida: %d\n", pointer->horarioSalida->minuto);
-    }
-}
-
-void leer(Asignatura *head)
+/* Function to read linked list, field by field*/
+void read(Asignatura *head)
 {
     Asignatura *currentNode;
     currentNode = head;
@@ -130,10 +106,10 @@ void leer(Asignatura *head)
     gets(palabra);
     currentNode->nombreAsignatura = (char *)malloc(sizeof(char)*(strlen(palabra)+1));
     strcpy(currentNode->nombreAsignatura,palabra);
-
+    
     printf("Dia semana: ");
     scanf("%d", &currentNode->diaSemana);
-
+    
     currentNode->horarioEntrada = (Fecha *)malloc(sizeof(Fecha));
     printf("Hora entrada: ");
     scanf("%d", &currentNode->horarioEntrada->hora);
@@ -148,12 +124,35 @@ void leer(Asignatura *head)
     currentNode->next = NULL;
 }
 
-int main()
+/* Validates for new nodes, asks for creation and introduces data*/
+Asignatura* inputController(Asignatura *head)
 {
-    Asignatura *head = crearNodo();
+    Asignatura* new_node = newAsignatura();
 
-    inputController(head);
-    imprimir(head);
+    int creator;
+    printf("\nDeseas agregar una materia? Si[1], NO[0]: ");
+    scanf("%d",&creator);
 
+    while (creator == 1)
+    {
+        new_node = newAsignatura();
+        read(new_node);
+        sortedInsert(&head, new_node); 
+        //addToLast(&head, new_node);
+
+        printf("\nDeseas agregar una materia? Si[1], NO[0]: ");
+        scanf("%d",&creator);
+    }
+    
+    return head;
+}
+
+int main(){
+    /* Start with the empty list */
+    Asignatura* head = NULL;
+    head = inputController(head);
+
+    printList(head);
+ 
     return 0;
 }
