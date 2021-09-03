@@ -22,8 +22,9 @@ typedef struct Asignatura Asignatura;
 typedef struct Fecha Fecha;
 
 void addToLast(Asignatura **first, Asignatura *second);
-int condicionOrdenamiento(Asignatura** head_ref, Asignatura* new_node);
-void sortedInsert(Asignatura** head_ref, Asignatura* new_node);
+void allocateSmallerNode(Asignatura** head_ref, Asignatura* new_node);
+void allocateGreaterNode(Asignatura** head_ref, Asignatura* new_node);
+void sortedInsertByDay(Asignatura** head_ref, Asignatura* new_node);
 Asignatura* newAsignatura();
 void printList(Asignatura* head);
 void read(Asignatura *head);
@@ -45,30 +46,35 @@ void addToLast(Asignatura **first, Asignatura *second)
     }
 }
 
-/* Function to define behavior of sortedInsert()*/
-int condicionOrdenamiento(Asignatura** head_ref, Asignatura* new_node)
+/* Function to call in case newNode is smaller than head*/
+void allocateSmallerNode(Asignatura** head_ref, Asignatura* new_node)
 {
-    return *head_ref == NULL || (*head_ref)->diaSemana >= new_node->diaSemana;
+    new_node->next = *head_ref;
+    *head_ref = new_node;
+}
+
+/* Function to call in case newNode is greater than head*/
+void allocateGreaterNode(Asignatura** head_ref, Asignatura* new_node)
+{
+    Asignatura* current;
+    current = *head_ref;
+
+    while (current->next != NULL && current->next->diaSemana < new_node->diaSemana) {
+        current = current->next;
+    }
+    new_node->next = current->next;
+    current->next = new_node;
 }
 
 /* Function to insert in ascending order*/
-void sortedInsert(Asignatura** head_ref, Asignatura* new_node)
+void sortedInsertByDay(Asignatura** head_ref, Asignatura* new_node)
 {
-    Asignatura* current;
     /* Special case for the head end */
-    if (condicionOrdenamiento(head_ref, new_node) == 1) {
-        new_node->next = *head_ref;
-        *head_ref = new_node;
+    if (*head_ref == NULL || (*head_ref)->diaSemana >= new_node->diaSemana) {
+        allocateSmallerNode(head_ref,new_node);
     }
     else {
-        /* Locate the node before
-the point of insertion */
-        current = *head_ref;
-        while (current->next != NULL && current->next->diaSemana < new_node->diaSemana) {
-            current = current->next;
-        }
-        new_node->next = current->next;
-        current->next = new_node;
+        allocateGreaterNode(head_ref, new_node);
     }
 }
 
@@ -137,7 +143,7 @@ Asignatura* inputController(Asignatura *head)
     {
         new_node = newAsignatura();
         read(new_node);
-        sortedInsert(&head, new_node); 
+        sortedInsertByDay(&head, new_node); 
         //addToLast(&head, new_node);
 
         printf("\nDeseas agregar una materia? Si[1], NO[0]: ");
