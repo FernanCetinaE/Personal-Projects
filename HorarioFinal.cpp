@@ -22,11 +22,18 @@ typedef struct Asignatura Asignatura;
 typedef struct Fecha Fecha;
 
 void addToLast(Asignatura **first, Asignatura *second);
-void allocateSmallerNode(Asignatura** head_ref, Asignatura* new_node);
-void allocateGreaterNode(Asignatura** head_ref, Asignatura* new_node);
-void sortedInsertByDay(Asignatura** head_ref, Asignatura* new_node);
-void allocateGreaterNodeByHour(Asignatura** head_ref, Asignatura* new_node);
-void sortedInsertByHour(Asignatura** head_ref, Asignatura* new_node);
+void insertarAlInicio(Asignatura** head_ref, Asignatura* new_node);
+void insertarDepues(Asignatura** head_ref, Asignatura* new_node);
+
+void insertarAlRestoPorDiaAscendente(Asignatura** head_ref, Asignatura* new_node);
+void insertarAscendentementePorDia(Asignatura** head_ref, Asignatura* new_node);
+
+void insertarAlRestoPorDiaDescendente(Asignatura** head_ref, Asignatura* new_node);
+void insertarDescendentementePorDia(Asignatura** head_ref, Asignatura* new_node);
+
+void insertarAlRestoPorHoraDescendente(Asignatura** head_ref, Asignatura* new_node);
+void insertarDescendentementePorHora(Asignatura** head_ref, Asignatura* new_node);
+
 Asignatura* newAsignatura();
 void printList(Asignatura* head);
 void read(Asignatura *head);
@@ -49,32 +56,101 @@ void addToLast(Asignatura **first, Asignatura *second)
 }
 
 /* Function to call in case newNode is smaller than head*/
-void allocateSmallerNode(Asignatura** head_ref, Asignatura* new_node)
+void insertarAlInicio(Asignatura** head_ref, Asignatura* new_node)
 {
     new_node->next = *head_ref;
     *head_ref = new_node;
 }
 
-/* Function to call in case newNode is greater than head*/
-void allocateGreaterNode(Asignatura** head_ref, Asignatura* new_node)
+void insertarDepues(Asignatura** head_ref, Asignatura* new_node){
+    Asignatura* current = *head_ref;
+    new_node->next = current->next;
+    current->next = new_node;
+}
+
+/*ORDEN DESCENDENTE*/
+
+/* Function to insert in descending order by day*/
+void insertarDescendentementePorDia(Asignatura** head_ref, Asignatura* new_node)
+{
+    /* Special case for the head end */
+    if (*head_ref == NULL || (*head_ref)->diaSemana <= new_node->diaSemana) {
+        insertarAlInicio(head_ref,new_node);
+    }
+    else {
+        insertarAlRestoPorDiaDescendente(head_ref, new_node);
+    }
+}
+
+/* Function to call in case newNode is smaller than head*/
+void insertarAlRestoPorDiaDescendente(Asignatura** head_ref, Asignatura* new_node)
 {
     Asignatura* current;
     current = *head_ref;
 
-    while (current->next != NULL && current->next->diaSemana < new_node->diaSemana) {
+    while (current->next != NULL && current->next->diaSemana > new_node->diaSemana) {
         current = current->next;
     }
     new_node->next = current->next;
     current->next = new_node;
+}
+
+/* Function to insert in ascending order*/
+void insertarDescendentementePorHora(Asignatura** head_ref, Asignatura* new_node)
+{
+    Asignatura* current;
+    current = *head_ref;
+    int check=0;
+
+        while (current != NULL)
+        {
+            if(current -> diaSemana == new_node -> diaSemana){
+            check=1;
+            }
+            current = current->next;
+        }
+        check ? insertarAlRestoPorHoraDescendente(head_ref, new_node) : insertarDescendentementePorDia(head_ref,new_node);
+       
 }
 
 /* Function to call in case newNode is greater than head by hour*/
-void allocateGreaterNodeByHour(Asignatura** head_ref, Asignatura* new_node)
+void insertarAlRestoPorHoraDescendente(Asignatura** head_ref, Asignatura* new_node)
+{
+    Asignatura* current;
+    current = *head_ref;
+    int condicionInsertarAlInicio = (*head_ref)->diaSemana == new_node->diaSemana && ( ((*head_ref)->horarioEntrada->hora + ((*head_ref)->horarioEntrada->minuto)/60) <= (new_node->horarioEntrada->hora + (new_node->horarioEntrada->minuto)/60)); 
+    int horaMenor=0; //auxiliar para determinar el orden de insercion
+
+    if ((*head_ref) != NULL && condicionInsertarAlInicio==1) {
+        insertarAlInicio(head_ref,new_node);
+    }else{
+        int nuevoNodoSmallerThanCurrent = current-> next ->horarioEntrada->hora + (current -> next -> horarioEntrada->minuto)/60 >= new_node->horarioEntrada->hora +(new_node->horarioEntrada->minuto)/60;
+
+        while ((current->next != NULL) && (current -> next -> diaSemana >= new_node -> diaSemana) && (nuevoNodoSmallerThanCurrent == 1)){
+            /*Insertar horas mayores*/
+            
+            if( (current -> next -> diaSemana == new_node -> diaSemana) && (!nuevoNodoSmallerThanCurrent) ){
+            current = current->next;
+            insertarDepues(&current, new_node);
+            horaMenor = 1;
+            }
+            current = current->next;
+        }
+        if(horaMenor == 0){
+            insertarDepues(&current, new_node);
+        }
+    }
+}
+
+/*ORDEN ASCENDENTE*/
+
+/* Function to call in case newNode is greater than head*/
+void insertarAlRestoPorDiaAscendente(Asignatura** head_ref, Asignatura* new_node)
 {
     Asignatura* current;
     current = *head_ref;
 
-    while (current->next != NULL && (current->next->horarioEntrada->hora + (current->next->horarioEntrada->hora)/60) < (new_node->next->horarioEntrada->hora + (new_node->next->horarioEntrada->hora)/60)) {
+    while (current->next != NULL && current->next->diaSemana <= new_node->diaSemana) {
         current = current->next;
     }
     new_node->next = current->next;
@@ -82,29 +158,14 @@ void allocateGreaterNodeByHour(Asignatura** head_ref, Asignatura* new_node)
 }
 
 /* Function to insert in ascending order*/
-void sortedInsertByDay(Asignatura** head_ref, Asignatura* new_node)
+void insertarAscendentementePorDia(Asignatura** head_ref, Asignatura* new_node)
 {
     /* Special case for the head end */
     if (*head_ref == NULL || (*head_ref)->diaSemana >= new_node->diaSemana) {
-        allocateSmallerNode(head_ref,new_node);
+        insertarAlInicio(head_ref,new_node);
     }
     else {
-        allocateGreaterNode(head_ref, new_node);
-    }
-}
-
-/* Function to insert in ascending order*/
-void sortedInsertByHour(Asignatura** head_ref, Asignatura* new_node)
-{
-    /* Special case for the head end */
-    if(*head_ref == NULL || (*head_ref)->diaSemana != new_node->diaSemana){
-        sortedInsertByDay(head_ref,new_node);
-    }
-    else if ( ((*head_ref)->horarioEntrada->hora + ((*head_ref)->horarioEntrada->minuto)/60  >= (new_node->horarioEntrada->hora + (new_node->horarioEntrada->minuto)/60))) {
-        allocateSmallerNode(head_ref,new_node);
-    }
-    else {
-        allocateGreaterNodeByHour(head_ref, new_node);
+        insertarAlRestoPorDiaAscendente(head_ref, new_node);
     }
 }
  
@@ -172,9 +233,13 @@ Asignatura* inputController(Asignatura *head)
     {
         new_node = newAsignatura();
         read(new_node);
-        //sortedInsertByDay(&head, new_node); 
+
+        /*------Escoger el tipo de ordenamiento-------*/
+
+        //insertarAscendentementePorDia(&head, new_node); 
         //addToLast(&head, new_node);
-        sortedInsertByHour(&head, new_node); 
+        insertarDescendentementePorHora(&head,new_node); 
+        //insertarDescendentementePorDia(&head,new_node); 
 
         printf("\nDeseas agregar una materia? Si[1], NO[0]: ");
         scanf("%d",&creator);
